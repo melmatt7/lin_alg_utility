@@ -1,0 +1,45 @@
+function cubic_spline_2()
+    x = [0 1 2 3 4 5 6 7 8 9 10];
+    y = [0 2 1 3 2 4 2 3 1 2 0];
+    
+    Llist = zeros(1,length(x)-1);
+    for i=1:length(x)-1
+        Llist(i) = x(i+1)-x(i);
+    end
+    
+    unknowns = 3*length(Llist);
+    Ln = Llist(length(Llist));
+    B = [0 0 0; 0 0 -1; 0 -2 0];
+    T = [0 0 0; 0 1 0; 0 0 0];
+    V = [Ln^3 Ln^2 Ln; 0 0 0; 6*Ln 2 0];
+    Alist = zeros(3,unknowns,length(Llist));
+    
+    for L = 1:length(Llist)
+        if L == 1
+            Alist(:,:,L) = [calc_A(Llist(L)) B zeros(3,unknowns-L*6)];
+            M = Alist(:,:,L);
+        elseif L == 10
+            Alist(:,:,L) = [T zeros(3,24) V];
+            M = [M;Alist(:,:,L)];
+        else
+            Alist(:,:,L) = [zeros(3,(L-1)*3) calc_A(Llist(L)) B zeros(3,unknowns-(L+1)*3)];
+            M = [M;Alist(:,:,L)];
+        end
+        
+    end
+    
+    b = zeros(1,unknowns);
+    for j = 1:unknowns
+        if mod(j,3) == 0
+            b(j) = y(j/3+1)-y((j/3));
+        end
+    end
+    b
+    
+    
+    
+end
+
+function A = calc_A(L)
+    A = [L^3 L^2 L; 3*L^2 2*L 1; 6*L 2 0];
+end
